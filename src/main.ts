@@ -54,8 +54,7 @@ setSKEventListener((e, gc) => {
             if (s.hitTest(me.x, me.y)) {
               // color BumbleBee
               s.stroke = "#FCE205";
-              // need to align with simonlogic's button index
-              console.log(`button: ${s.text - 1}`);
+              console.log(`button: ${s.text}`);
             } else {
               s.stroke = "transparent";
             }
@@ -109,7 +108,6 @@ setSKEventListener((e, gc) => {
             // computer needs to show full sequence
             let currentIndex = 0;
             while (simonGame.index >= currentIndex) {
-              console.log("hi");
               simonGame.nextButton();
               currentIndex += 1;
             }
@@ -129,7 +127,6 @@ setSKEventListener((e, gc) => {
             addButton();
             changeAlignment();
             // return to start message and rest the game
-            // refer to piazza @48
             simonGame = new SimonLogic(buttonCount);
           } else {
             console.warn("Can't add button in this state");
@@ -175,8 +172,6 @@ setSKDrawCallback((gc) => {
 
 // display score and message
 function scoreMessage(gc: CanvasRenderingContext2D) {
-  // const x = window.innerWidth / 2 - 75;
-  // const y = window.innerHeight / 2 - 200;
   gc.save();
 
   gc.font = "32pt sans-serif";
@@ -192,7 +187,7 @@ function scoreMessage(gc: CanvasRenderingContext2D) {
   // turn on cheating mode
   if (isCheating) {
     gc.fillStyle = "grey";
-    gc.fillText("CHEATING", window.innerWidth - 150, window.innerHeight - 100);
+    gc.fillText("CHEATING", window.innerWidth - 150, window.innerHeight - 50);
     gc.fillStyle = "black";
   }
 
@@ -205,12 +200,8 @@ function scoreMessage(gc: CanvasRenderingContext2D) {
     if (!isCheating) {
       msg = "Now it’s your turn";
     } else {
-      // TODO: change button sequence by 1
-      // console.log(simonGame.remainingSequence());
-      msg = simonGame.remainingSequence();
-      // msg = simonGame.remainingSequence().forEach((s) => {
-      //   s += 1;
-      // });
+      let arr = simonGame.remainingSequence();
+      msg = arr.map((x) => x + 1);
     }
   } else if (simonGame.state == "WIN") {
     msg = "You won! Press SPACE to continue";
