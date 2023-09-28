@@ -9,7 +9,7 @@ export class CircularButton implements Drawable {
     public y: number,
     public text: string,
     public fill: string,
-    public stroke: string = "whitesmoke"
+    public stroke: string = "transparent"
   ) {}
 
   draw(gc: CanvasRenderingContext2D) {
@@ -19,12 +19,12 @@ export class CircularButton implements Drawable {
     gc.lineWidth = 10;
     gc.beginPath();
 
-    gc.arc(this.x, this.y, diameter, 0, Math.PI * 2);
+    gc.arc(this.x, this.y, diameter / 2, 0, Math.PI * 2);
     gc.fill();
     gc.stroke();
 
     // button label
-    gc.font = "69pt sans-serif";
+    gc.font = "39pt sans-serif";
     gc.textAlign = "center";
     gc.textBaseline = "middle";
     gc.fillStyle = "white";
@@ -36,8 +36,7 @@ export class CircularButton implements Drawable {
   hitTest(mx: number, my: number) {
     let hit = false;
     const d = distance(mx, my, this.x, this.y);
-    // TODO: why not radius
-    if (d < diameter) {
+    if (d < diameter / 2) {
       hit = true;
     }
     return hit;

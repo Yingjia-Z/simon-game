@@ -12,57 +12,32 @@ import {
 } from "../../simplekit";
 import { CircularButton } from "./circleButton";
 
-let simonGame = new SimonLogic();
+// TODO: animation
 
 const shapes: Drawable[] = [];
 
 let width = 0;
 let height = 0;
 
+let msg = "";
+
 const m = { x: 0, y: 0 };
 
 let buttonCount = 0;
 
+const diameter = 120;
 
-// TODO: change the title in index.html?
-const x = (window.innerWidth - 480) / 5;
-// TODO: how to change the alignmnet?
-// TODO: piazza @66
-buttonCount++;
-const button1 = new CircularButton(
-  x + 60,
-  window.innerHeight / 2,
-  buttonCount,
-  "hsl(0deg 50% 50%)"
-);
-shapes.push(button1);
+let isCheating = false;
 
-const button2 = new CircularButton(
-  x * 2 + 120 + 60,
-  window.innerHeight / 2,
-  "2",
-  "hsl(90deg 50% 50%)"
-);
-shapes.push(button2);
-buttonCount++;
+// maximum hue degree / maximum number of buttons
+const hueDegree = 36;
 
-const button3 = new CircularButton(
-  x * 3 + 240 + 60,
-  window.innerHeight / 2,
-  "3",
-  "hsl(180deg 50% 50%)"
-);
-shapes.push(button3);
-buttonCount++;
+let defaultButtonNum = 4;
 
-const button4 = new CircularButton(
-  x * 4 + 360 + 60,
-  window.innerHeight / 2,
-  "4",
-  "hsl(270deg 50% 50%)"
-);
-shapes.push(button4);
-buttonCount++;
+initizeButton();
+
+// create simon game
+let simonGame = new SimonLogic(buttonCount);
 
 // handle event
 setSKEventListener((e, gc) => {
@@ -71,19 +46,22 @@ setSKEventListener((e, gc) => {
       const me = e as SKMouseEvent;
       m.x = me.x;
       m.y = me.y;
+
+      // thick highlight effect
       shapes.forEach((s) => {
         if (simonGame.state == "HUMAN") {
           if (s instanceof CircularButton) {
-            //TODO: does this work? after resize, the stroke will show
             if (s.hitTest(me.x, me.y)) {
-              s.stroke = "yellow";
-              console.log(s.text);
+              // color BumbleBee
+              s.stroke = "#FCE205";
+              // need to align with simonlogic's button index
+              console.log(`button: ${s.text - 1}`);
             } else {
-              s.stroke = "whitesmoke";
+              s.stroke = "transparent";
             }
           }
         } else {
-          s.stroke = "whitesmoke";
+          s.stroke = "transparent";
         }
       });
       break;
@@ -102,7 +80,7 @@ setSKEventListener((e, gc) => {
         if (simonGame.state == "HUMAN") {
           if (s instanceof CircularButton) {
             if (s.hitTest(mc.x, mc.y)) {
-              simonGame.verifyButton(s.text)
+              simonGame.verifyButton(s.text - 1);
             }
           }
         }
@@ -116,35 +94,67 @@ setSKEventListener((e, gc) => {
       switch (key) {
         // cancels the current game, restarts a new one
         case "q":
-          simonGame = new SimonLogic();
+          simonGame = new SimonLogic(buttonCount);
+          break;
+
+        case "?":
+          isCheating = !isCheating;
           break;
 
         case " ":
-          // TODO: what does this mean: from nextbutton(): next button: index 0, button 0
-          // console.log("hi");
-          simonGame.newRound();
-          simonGame.nextButton();
-          // TODO: stuck after round 1 won
+          if (simonGame.state == "COMPUTER" || simonGame.state == "HUMAN") {
+            console.warn("Please finish current round");
+          } else {
+            simonGame.newRound();
+            // computer needs to show full sequence
+            let currentIndex = 0;
+            while (simonGame.index >= currentIndex) {
+              console.log("hi");
+              simonGame.nextButton();
+              currentIndex += 1;
+            }
+          }
           break;
 
         case "+":
-          buttonCount += 1;
-          // TODO: hues forming a pattern of distinct? can i use random number?
-          // TODO: if the buttoncount is more than 10 or less than 1, will there be any error message displayed?
-          // TODO: which data structure to use to format the buttons? after pushed into shapes and able to change properties
-          // TODO: after adding a button, how to tell simonlogic?
-          shapes.push(
-            new CircularButton(
-              x * 4 + 360 + 60,
-              window.innerHeight - 100,
-              buttonCount,
-              "hsl(270deg 50% 50%)"
-            )
-          );
+          if (
+            simonGame.state == "START" ||
+            simonGame.state == "WIN" ||
+            simonGame.state == "LOSE"
+          ) {
+            if (buttonCount == 10) {
+              console.warn("Button number can't exceed 10");
+              break;
+            }
+            addButton();
+            changeAlignment();
+            // return to start message and rest the game
+            // refer to piazza @48
+            simonGame = new SimonLogic(buttonCount);
+          } else {
+            console.warn("Can't add button in this state");
+            break;
+          }
           break;
 
         case "-":
-          shapes.pop();
+          if (
+            simonGame.state == "START" ||
+            simonGame.state == "WIN" ||
+            simonGame.state == "LOSE"
+          ) {
+            if (buttonCount == 1) {
+              console.warn("Button number can't be less than 1");
+              break;
+            }
+            buttonCount -= 1;
+            shapes.pop();
+            changeAlignment();
+            simonGame = new SimonLogic(buttonCount);
+          } else {
+            console.warn("Can't remove button in this state");
+            break;
+          }
           break;
       }
       break;
@@ -156,40 +166,91 @@ setSKDrawCallback((gc) => {
   // clear background
   gc.clearRect(0, 0, width, height);
 
-  ScoreMessage(gc);
+  scoreMessage(gc);
 
   shapes.forEach((s) => {
     s.draw(gc);
   });
 });
 
-function ScoreMessage(gc: CanvasRenderingContext2D) {
-  const x = window.innerWidth / 2;
-  const y = window.innerHeight / 2 - 200;
+// display score and message
+function scoreMessage(gc: CanvasRenderingContext2D) {
+  // const x = window.innerWidth / 2 - 75;
+  // const y = window.innerHeight / 2 - 200;
   gc.save();
-  gc.font = "32pt sans-serif";
 
+  gc.font = "32pt sans-serif";
   gc.fillStyle = "black";
-  gc.fillText("Score " + simonGame.score, x, y);
+  gc.fillText(
+    "Score " + simonGame.score,
+    window.innerWidth / 2 - 75,
+    window.innerHeight / 2 - 200
+  );
   gc.textAlign = "center";
   gc.textBaseline = "middle";
-  gc.fillStyle = "black";
+
+  // turn on cheating mode
+  if (isCheating) {
+    gc.fillStyle = "grey";
+    gc.fillText("CHEATING", window.innerWidth - 150, window.innerHeight - 100);
+    gc.fillStyle = "black";
+  }
 
   // change message displayed according to game state
-  let msg = "";
   if (simonGame.state == "START") {
     msg = "Press SPACE to play";
   } else if (simonGame.state == "COMPUTER") {
     msg = "Watch what I do …";
   } else if (simonGame.state == "HUMAN") {
-    msg = "Now it’s your turn";
+    if (!isCheating) {
+      msg = "Now it’s your turn";
+    } else {
+      // TODO: change button sequence by 1
+      // console.log(simonGame.remainingSequence());
+      msg = simonGame.remainingSequence();
+      // msg = simonGame.remainingSequence().forEach((s) => {
+      //   s += 1;
+      // });
+    }
   } else if (simonGame.state == "WIN") {
     msg = "You won! Press SPACE to continue";
   } else if (simonGame.state == "LOSE") {
     msg = "You lose. Press SPACE to play again";
   }
-  gc.fillText(msg, x, y + 450);
+  gc.fillText(msg, window.innerWidth / 2 + 15, window.innerHeight / 2 + 200);
   gc.restore();
+}
+
+// change button alignment when button added or removed
+function changeAlignment() {
+  const gap = (window.innerWidth - diameter * buttonCount) / (buttonCount + 1);
+  for (let i = 0; i < buttonCount; i++) {
+    shapes[i].x = gap * (i + 1) + i * diameter + diameter / 2;
+  }
+}
+
+// add button
+function addButton() {
+  buttonCount += 1;
+
+  shapes.push(
+    new CircularButton(
+      0,
+      window.innerHeight / 2,
+      buttonCount,
+      // add 108 degree to separate colors of buttons more clearly
+      `hsl(${hueDegree * buttonCount + 108}deg 50% 50%)`
+    )
+  );
+}
+
+// initize button number to 4
+function initizeButton() {
+  while (defaultButtonNum > 0) {
+    addButton();
+    changeAlignment();
+    defaultButtonNum -= 1;
+  }
 }
 
 startSimpleKit();
