@@ -1,4 +1,6 @@
 import { SimonLogic } from "./simonlogic.ts";
+import { CircularButton } from "./circleButton";
+import { CallbackTimer } from "./timer.ts";
 
 import {
   startSimpleKit,
@@ -10,18 +12,7 @@ import {
   SKKeyboardEvent,
   setSKAnimationCallback,
   addSKEventTranslator,
-} from "../../simplekit";
-
-import { CircularButton } from "./circleButton";
-
-import {
-  animationManager,
-  Animater,
-  easeIn,
-  easeOut,
-  bow,
-  bounce,
-} from "./animationManager";
+} from "./simplekit";
 
 // TODO: animation
 // TODO: longpress
@@ -64,8 +55,7 @@ setSKEventListener((e, gc) => {
         if (simonGame.state == "HUMAN") {
           if (s instanceof CircularButton) {
             if (s.hitTest(me.x, me.y)) {
-              // color BumbleBee
-              s.stroke = "#FCE205";
+              s.stroke = "yellow";
               console.log(`button: ${s.text}`);
             } else {
               s.stroke = "transparent";
@@ -92,6 +82,7 @@ setSKEventListener((e, gc) => {
         if (simonGame.state == "HUMAN") {
           if (s instanceof CircularButton) {
             if (s.hitTest(mc.x, mc.y)) {
+              s.grow();
               simonGame.verifyButton(s.text - 1);
             }
           }
@@ -121,8 +112,12 @@ setSKEventListener((e, gc) => {
             // computer needs to show full sequence
             let currentIndex = 0;
             while (simonGame.index >= currentIndex) {
-              simonGame.nextButton();
+              let show = simonGame.nextButton();
+              shapes[show].grow();
               currentIndex += 1;
+              // waitTimer.start(performance.now());
+              // wait = true;
+              // while (wait) continue;
             }
           }
           break;
@@ -244,6 +239,7 @@ function addButton() {
     new CircularButton(
       0,
       window.innerHeight / 2,
+      diameter,
       buttonCount,
       // add 108 degree to separate colors of buttons more clearly
       `hsl(${hueDegree * buttonCount + 108}deg 50% 50%)`
@@ -259,5 +255,20 @@ function initizeButton() {
     defaultButtonNum -= 1;
   }
 }
+
+// add animations
+setSKAnimationCallback((time) => {
+  shapes.forEach((s) => {
+    s.update(time);
+  });
+  waitTimer.update(time);
+});
+
+let wait = false;
+
+const waitTimer = new CallbackTimer(500, (t) => {
+  wait = !wait;
+  // this.wait = !this.wait;
+});
 
 startSimpleKit();
