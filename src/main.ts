@@ -1,4 +1,5 @@
 import { SimonLogic } from "./simonlogic.ts";
+
 import {
   startSimpleKit,
   setSKDrawCallback,
@@ -10,9 +11,20 @@ import {
   setSKAnimationCallback,
   addSKEventTranslator,
 } from "../../simplekit";
+
 import { CircularButton } from "./circleButton";
 
+import {
+  animationManager,
+  Animater,
+  easeIn,
+  easeOut,
+  bow,
+  bounce,
+} from "./animationManager";
+
 // TODO: animation
+// TODO: longpress
 
 const shapes: Drawable[] = [];
 
@@ -69,6 +81,7 @@ setSKEventListener((e, gc) => {
       const re = e as SKResizeEvent;
       width = re.width;
       height = re.height;
+      changeAlignment();
       break;
 
     case "click":
@@ -174,12 +187,13 @@ setSKDrawCallback((gc) => {
 function scoreMessage(gc: CanvasRenderingContext2D) {
   gc.save();
 
+  // show the score
   gc.font = "32pt sans-serif";
   gc.fillStyle = "black";
   gc.fillText(
     "Score " + simonGame.score,
-    window.innerWidth / 2 - 75,
-    window.innerHeight / 2 - 200
+    window.innerWidth / 2.3,
+    window.innerHeight / 3.6
   );
   gc.textAlign = "center";
   gc.textBaseline = "middle";
@@ -187,7 +201,7 @@ function scoreMessage(gc: CanvasRenderingContext2D) {
   // turn on cheating mode
   if (isCheating) {
     gc.fillStyle = "grey";
-    gc.fillText("CHEATING", window.innerWidth - 150, window.innerHeight - 50);
+    gc.fillText("CHEATING", window.innerWidth / 1.2, window.innerHeight / 1.1);
     gc.fillStyle = "black";
   }
 
@@ -208,15 +222,17 @@ function scoreMessage(gc: CanvasRenderingContext2D) {
   } else if (simonGame.state == "LOSE") {
     msg = "You lose. Press SPACE to play again";
   }
-  gc.fillText(msg, window.innerWidth / 2 + 15, window.innerHeight / 2 + 200);
+  gc.fillText(msg, window.innerWidth / 2, window.innerHeight / 1.3);
   gc.restore();
 }
 
 // change button alignment when button added or removed
+// change button location when window is resized
 function changeAlignment() {
   const gap = (window.innerWidth - diameter * buttonCount) / (buttonCount + 1);
   for (let i = 0; i < buttonCount; i++) {
     shapes[i].x = gap * (i + 1) + i * diameter + diameter / 2;
+    shapes[i].y = window.innerHeight / 2;
   }
 }
 
