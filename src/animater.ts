@@ -1,3 +1,5 @@
+import { CallbackTimer } from "./timer";
+
 // linear interpolation
 export const lerp = (start: number, end: number, t: number) =>
   start + (end - start) * t;
@@ -21,6 +23,8 @@ export const bow: EasingFunction = (a, x = 1) =>
 export const bounce: EasingFunction = (t, x = 1.5) =>
   Math.pow(2, 10 * (t - 1)) * Math.cos(((20 * Math.PI * x) / 3) * t);
 
+export const sineEase: EasingFunction = (t) => Math.sin((t * Math.PI) / 2);
+
 //#endregion
 
 // basic animation object
@@ -30,10 +34,14 @@ export class Animater {
     public endValue: number,
     public duration: number,
     public updateValue: (p: number) => void,
-    public easing: EasingFunction = (t) => t
-  ) {}
+    public easing: EasingFunction = (t) => t,
+    public loop: boolean = false // Add a loop parameter
+  ) {
+    this.originalStart = startValue;  // Store the original starting position
+  }
 
   private startTime: number | undefined;
+
 
   start(time: number) {
     this.startTime = time;
@@ -62,5 +70,28 @@ export class Animater {
       this._isRunning = false;
       console.log("animation finished");
     }
+    // if (t >= 1) {
+    //   if (this.loop) {
+    //     // Reverse the animation direction
+    //     [this.startValue, this.endValue] = [this.endValue, this.startValue];
+    //     this.startTime = time; // Reset the start time for the next loop iteration
+    //   } else {
+    //     this.startTime = undefined;
+    //     this._isRunning = false;
+    //     console.log("animation finished");
+    //   }
+    // }
   }
+
+  returnToStart(time: number) {
+    if (this._isRunning) {
+      console.error("Animation is still running. Wait for it to complete before returning to start.");
+      return;
+    }
+
+    // Swap the start and end values to move back to the original position
+    [this.startValue, this.endValue] = [this.endValue, this.originalStart];
+    this.start(time);
+  }
+
 }

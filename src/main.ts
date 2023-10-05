@@ -1,6 +1,7 @@
 import { SimonLogic } from "./simonlogic.ts";
 import { CircularButton } from "./circleButton";
 import { CallbackTimer } from "./timer.ts";
+import { Animater, sineEase } from "./animater.ts";
 
 import {
   startSimpleKit,
@@ -16,6 +17,8 @@ import {
 
 // TODO: animation
 // TODO: longpress
+// TODO: continuous animation
+// TODO: message delay
 
 const shapes: Drawable[] = [];
 
@@ -31,6 +34,11 @@ let buttonCount = 0;
 const diameter = 120;
 
 let isCheating = false;
+
+let currentIndex = 0;
+let buttonIdx = 0;
+
+let isPaused = false;
 
 // maximum hue degree / maximum number of buttons
 const hueDegree = 36;
@@ -105,20 +113,15 @@ setSKEventListener((e, gc) => {
           break;
 
         case " ":
+          shapes.forEach((s) => {
+            s.putbackAttract();
+          });
           if (simonGame.state == "COMPUTER" || simonGame.state == "HUMAN") {
             console.warn("Please finish current round");
           } else {
             simonGame.newRound();
-            // computer needs to show full sequence
-            let currentIndex = 0;
-            while (simonGame.index >= currentIndex) {
-              let show = simonGame.nextButton();
-              shapes[show].grow();
-              currentIndex += 1;
-              // waitTimer.start(performance.now());
-              // wait = true;
-              // while (wait) continue;
-            }
+            currentIndex = 0;
+            playNextButton();
           }
           break;
 
@@ -203,7 +206,35 @@ function scoreMessage(gc: CanvasRenderingContext2D) {
   // change message displayed according to game state
   if (simonGame.state == "START") {
     msg = "Press SPACE to play";
+    // shapes.forEach((s) => {
+    //   s.sineAttract(performance.now());
+    // });
+
+    // shapes.forEach((s) => {
+    //   s.sineAttract2(500);
+    // });
+
+    // // delay in milliseconds for each shape
+    // const timeIncrement = 300;
+
+    // shapes.forEach((s, index) => {
+    //   s.sineAttract(20 + index * timeIncrement);
+    // });
+
+    // set the animation callback
+    // setSKAnimationCallback(bounce);
+
+    // shapes.forEach((s) => {
+    //   s.sineAttract(performance.now());
+    // });
+
+    // setSKAnimationCallback((time) => {
+    //   shapes.forEach((s) => {
+    //     bounce(s, time);
+    //   });
+    // });
   } else if (simonGame.state == "COMPUTER") {
+    changeAlignment();
     msg = "Watch what I do …";
   } else if (simonGame.state == "HUMAN") {
     if (!isCheating) {
@@ -214,8 +245,14 @@ function scoreMessage(gc: CanvasRenderingContext2D) {
     }
   } else if (simonGame.state == "WIN") {
     msg = "You won! Press SPACE to continue";
+    shapes.forEach((s) => {
+      s.stroke = "transparent";
+    });
   } else if (simonGame.state == "LOSE") {
     msg = "You lose. Press SPACE to play again";
+    shapes.forEach((s) => {
+      s.loseAttract();
+    });
   }
   gc.fillText(msg, window.innerWidth / 2, window.innerHeight / 1.3);
   gc.restore();
@@ -223,7 +260,7 @@ function scoreMessage(gc: CanvasRenderingContext2D) {
 
 // change button alignment when button added or removed
 // change button location when window is resized
-function changeAlignment() {
+function changeAlignment() { 
   const gap = (window.innerWidth - diameter * buttonCount) / (buttonCount + 1);
   for (let i = 0; i < buttonCount; i++) {
     shapes[i].x = gap * (i + 1) + i * diameter + diameter / 2;
@@ -260,15 +297,62 @@ function initizeButton() {
 setSKAnimationCallback((time) => {
   shapes.forEach((s) => {
     s.update(time);
+    if (simonGame.state == "START" || simonGame.state == "WIN") {
+      bounce(s);
+    }
   });
-  waitTimer.update(time);
+  simonWaitTimer.update(time);
+  // if (simonGame.state == "START") {
+  //   bounce(shapes[1]);
+  // } 
 });
 
-let wait = false;
+// introduce time gap between animations
+const simonWaitTimer = new CallbackTimer(1000, playNextButton);
 
-const waitTimer = new CallbackTimer(500, (t) => {
-  wait = !wait;
-  // this.wait = !this.wait;
-});
+function playNextButton() {
+  if (simonGame.index >= currentIndex) {
+    currentIndex += 1;
+    buttonIdx = simonGame.nextButton();
+    shapes[buttonIdx].grow();
+    simonWaitTimer.start(performance.now());
+  }
+}
+
+let dy = 1;
+const maxY = window.innerHeight / 1.8;
+const minY = window.innerHeight / 2.8;
+
+
+function bounce(button, time: number) {
+  // if object hits the limits, change direction
+  if (button.y < minY || button.y > maxY) {
+    dy *= -1.0;
+  }
+  button.y += dy;
+}
+
+// let test = new Animater(
+//   200,
+//   400,
+//   1000,
+//   (p) => {
+//     shapes[0].y = p;
+//   },
+//   sineEase
+// );
+
+// let test2 = new Animater(
+//   400,
+//   200,
+//   1000,
+//   (p) => {
+//     shapes[0].y = p;
+//   },
+//   sineEase
+// );
+
+// test.start(3000);
+// test2.start(4000);
 
 startSimpleKit();
