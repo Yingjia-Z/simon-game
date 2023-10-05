@@ -16,8 +16,6 @@ export class CircularButton implements Drawable {
   ) {}
 
   growAnimation: Animater | undefined;
-  sineAnimation: Animater | undefined;
-  sineAnimation2: Animater | undefined;
   loseAnimation: Animater | undefined;
 
   growTimer = new CallbackTimer(500, (t) => {
@@ -27,7 +25,6 @@ export class CircularButton implements Drawable {
   update(time: number) {
     this.growAnimation?.update(time);
     this.growTimer.update(time);
-    this.sineAnimation?.update(time);
     this.loseAnimation?.update(time);
   }
 
@@ -63,34 +60,6 @@ export class CircularButton implements Drawable {
       sineEase
     );
     this.loseAnimation.start(performance.now());
-  }
-
-  sineAttract(time: number) {
-    this.sineAnimation = new Animater(
-      this.y,
-      window.innerHeight / 1.6,
-      400,
-      (p) => {
-        this.y = p;
-      },
-      sineEase,
-      // true
-    );
-    this.sineAnimation.start(time);
-  }
-
-  sineAttract2(time: number) {
-    this.sineAnimation2 = new Animater(
-      window.innerHeight / 1.6,
-      this.y,
-      400,
-      (p) => {
-        this.y = p;
-      },
-      easeIn,
-      // true
-    );
-    this.sineAnimation2.start(time);
   }
 
   draw(gc: CanvasRenderingContext2D) {

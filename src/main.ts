@@ -15,9 +15,7 @@ import {
   addSKEventTranslator,
 } from "./simplekit";
 
-// TODO: animation
 // TODO: longpress
-// TODO: continuous animation
 // TODO: message delay
 
 const shapes: Drawable[] = [];
@@ -206,33 +204,6 @@ function scoreMessage(gc: CanvasRenderingContext2D) {
   // change message displayed according to game state
   if (simonGame.state == "START") {
     msg = "Press SPACE to play";
-    // shapes.forEach((s) => {
-    //   s.sineAttract(performance.now());
-    // });
-
-    // shapes.forEach((s) => {
-    //   s.sineAttract2(500);
-    // });
-
-    // // delay in milliseconds for each shape
-    // const timeIncrement = 300;
-
-    // shapes.forEach((s, index) => {
-    //   s.sineAttract(20 + index * timeIncrement);
-    // });
-
-    // set the animation callback
-    // setSKAnimationCallback(bounce);
-
-    // shapes.forEach((s) => {
-    //   s.sineAttract(performance.now());
-    // });
-
-    // setSKAnimationCallback((time) => {
-    //   shapes.forEach((s) => {
-    //     bounce(s, time);
-    //   });
-    // });
   } else if (simonGame.state == "COMPUTER") {
     changeAlignment();
     msg = "Watch what I do …";
@@ -302,9 +273,6 @@ setSKAnimationCallback((time) => {
     }
   });
   simonWaitTimer.update(time);
-  // if (simonGame.state == "START") {
-  //   bounce(shapes[1]);
-  // } 
 });
 
 // introduce time gap between animations
@@ -330,29 +298,6 @@ function bounce(button, time: number) {
     dy *= -1.0;
   }
   button.y += dy;
-}
-
-// let test = new Animater(
-//   200,
-//   400,
-//   1000,
-//   (p) => {
-//     shapes[0].y = p;
-//   },
-//   sineEase
-// );
-
-// let test2 = new Animater(
-//   400,
-//   200,
-//   1000,
-//   (p) => {
-//     shapes[0].y = p;
-//   },
-//   sineEase
-// );
-
-// test.start(3000);
-// test2.start(4000);
+} 
 
 startSimpleKit();
