@@ -31,8 +31,8 @@ const diameter = 120;
 
 let isCheating = false;
 
-let currentIndex = 0;
-let buttonIdx = 0;
+// let currentIndex = 0;
+// let buttonIdx = 0;
 
 let isPaused = false;
 
@@ -117,6 +117,7 @@ setSKEventListener((e, gc) => {
 
         case "?":
           isCheating = !isCheating;
+          console.log(isCheating);
           break;
 
         case " ":
@@ -127,7 +128,7 @@ setSKEventListener((e, gc) => {
             console.warn("Please finish current round");
           } else {
             simonGame.newRound();
-            currentIndex = 0;
+            // currentIndex = 0;
             playNextButton();
           }
           break;
@@ -213,17 +214,24 @@ function scoreMessage(gc: CanvasRenderingContext2D) {
   // change message displayed according to game state
   if (simonGame.state == "START") {
     msg = "Press SPACE to play";
-  } else if (simonGame.state == "COMPUTER") {
-    changeAlignment();
-    msg = "Watch what I do …";
-  } else if (simonGame.state == "HUMAN") {
-    if (!isCheating) {
-      msg = "Now it’s your turn";
-    } else {
-      let arr = simonGame.remainingSequence();
-      msg = arr.map((x) => x + 1);
-    }
-  } else if (simonGame.state == "WIN") {
+  } 
+  // else if (simonGame.state == "COMPUTER") {
+  //   changeAlignment();
+  //   msg = "Watch what I do …";
+  // } 
+  // else if (simonGame.state == "HUMAN") {
+  //   if (!isCheating) {
+  //     msg = "Now it’s your turn";
+  //   } else {
+  //     let arr = simonGame.remainingSequence();
+  //     msg = arr.map((x) => x + 1);
+  //   }
+  //   //   if (isCheating) {
+  //   //     let arr = simonGame.remainingSequence();
+  //   //     msg = arr.map((x) => x + 1);
+  //   // }
+  // } 
+  else if (simonGame.state == "WIN") {
     msg = "You won! Press SPACE to continue";
     shapes.forEach((s) => {
       s.stroke = "transparent";
@@ -287,12 +295,31 @@ setSKAnimationCallback((time) => {
 // introduce time gap between animations
 const simonWaitTimer = new CallbackTimer(1000, playNextButton);
 
+// function playNextButton() {
+//   if (simonGame.index >= currentIndex) {
+//     currentIndex += 1;
+//     buttonIdx = simonGame.nextButton();
+//     shapes[buttonIdx].grow();
+//     simonWaitTimer.start(performance.now());
+//   }
+// }
+
 function playNextButton() {
-  if (simonGame.index >= currentIndex) {
-    currentIndex += 1;
-    buttonIdx = simonGame.nextButton();
+  if (simonGame.state == "COMPUTER") {
+    // currentIndex += 1;
+    let buttonIdx = simonGame.nextButton();
     shapes[buttonIdx].grow();
     simonWaitTimer.start(performance.now());
+    msg = "Watch what I do …";
+  } 
+  else if (simonGame.state == "HUMAN") {
+    if (!isCheating) {
+      msg = "Now it’s your turn";
+    } 
+    else {
+      let arr = simonGame.remainingSequence();
+      msg = arr.map((x) => x + 1);
+    }
   }
 }
 
