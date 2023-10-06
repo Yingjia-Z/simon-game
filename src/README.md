@@ -6,4 +6,4 @@ NOTE:
 
 1. In the attract animation, the buttons don't form a sine wave, each button has its own pattern of movement.
 
-2. When playing buttons, the animation finishes after the the state changes.
+2. When playing buttons, the animation finishes after the the state changes. A fixed version of that bug is in main2.ts. However, main2.ts can only activate/inactivate CHEATING mode before/after HUMAN state.
