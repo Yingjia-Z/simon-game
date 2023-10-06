@@ -2,6 +2,7 @@ import { SimonLogic } from "./simonlogic.ts";
 import { CircularButton } from "./circleButton";
 import { CallbackTimer } from "./timer.ts";
 import { Animater, sineEase } from "./animater.ts";
+import { longpressTranslator } from "./longpresstranslator.ts";
 
 import {
   startSimpleKit,
@@ -14,9 +15,6 @@ import {
   setSKAnimationCallback,
   addSKEventTranslator,
 } from "./simplekit";
-
-// TODO: longpress
-// TODO: message delay
 
 const shapes: Drawable[] = [];
 
@@ -37,6 +35,8 @@ let currentIndex = 0;
 let buttonIdx = 0;
 
 let isPaused = false;
+
+let currentButtonSeq = [];
 
 // maximum hue degree / maximum number of buttons
 const hueDegree = 36;
@@ -96,6 +96,16 @@ setSKEventListener((e, gc) => {
       });
       break;
 
+    case "longpress":
+      if (simonGame.state == "HUMAN") {
+        if (currentButtonSeq.length === 0) {
+          console.warn("no more button to show.");
+          break;
+        }
+        shapes[currentButtonSeq.shift()].grow();
+      }
+      break;
+
     case "keypress":
       const { key } = e as SKKeyboardEvent;
       console.log(`${e.type} '${key}' at ${e.timeStamp} `);
@@ -118,6 +128,7 @@ setSKEventListener((e, gc) => {
             console.warn("Please finish current round");
           } else {
             simonGame.newRound();
+            currentButtonSeq = [];
             currentIndex = 0;
             playNextButton();
           }
@@ -231,7 +242,7 @@ function scoreMessage(gc: CanvasRenderingContext2D) {
 
 // change button alignment when button added or removed
 // change button location when window is resized
-function changeAlignment() { 
+function changeAlignment() {
   const gap = (window.innerWidth - diameter * buttonCount) / (buttonCount + 1);
   for (let i = 0; i < buttonCount; i++) {
     shapes[i].x = gap * (i + 1) + i * diameter + diameter / 2;
@@ -282,6 +293,7 @@ function playNextButton() {
   if (simonGame.index >= currentIndex) {
     currentIndex += 1;
     buttonIdx = simonGame.nextButton();
+    currentButtonSeq.push(buttonIdx);
     shapes[buttonIdx].grow();
     simonWaitTimer.start(performance.now());
   }
@@ -291,13 +303,14 @@ let dy = 1;
 const maxY = window.innerHeight / 1.8;
 const minY = window.innerHeight / 2.8;
 
-
 function bounce(button, time: number) {
   // if object hits the limits, change direction
   if (button.y < minY || button.y > maxY) {
     dy *= -1.0;
   }
   button.y += dy;
-} 
+}
+
+addSKEventTranslator(longpressTranslator);
 
 startSimpleKit();
