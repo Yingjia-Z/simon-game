@@ -11,11 +11,6 @@ import {
   SKResizeEvent,
 } from "./simplekit/events";
 
-// export type EventTranslator = {
-//   update: (fe: FundamentalEvent) => SKEvent | undefined;
-// };
-
-
 export const longpressTranslator = {
   state: "IDLE",
   // parameters for transitions

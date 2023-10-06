@@ -36,8 +36,6 @@ let buttonIdx = 0;
 
 let isPaused = false;
 
-let currentButtonSeq = [];
-
 // maximum hue degree / maximum number of buttons
 const hueDegree = 36;
 
@@ -98,11 +96,12 @@ setSKEventListener((e, gc) => {
 
     case "longpress":
       if (simonGame.state == "HUMAN") {
-        if (currentButtonSeq.length === 0) {
+        if (simonGame.remainingSequence().length === 0) {
           console.warn("no more button to show.");
           break;
         }
-        shapes[currentButtonSeq.shift()].grow();
+        let next = simonGame.remainingSequence()[0];
+        shapes[next].grow();
       }
       break;
 
@@ -128,7 +127,6 @@ setSKEventListener((e, gc) => {
             console.warn("Please finish current round");
           } else {
             simonGame.newRound();
-            currentButtonSeq = [];
             currentIndex = 0;
             playNextButton();
           }
@@ -293,7 +291,6 @@ function playNextButton() {
   if (simonGame.index >= currentIndex) {
     currentIndex += 1;
     buttonIdx = simonGame.nextButton();
-    currentButtonSeq.push(buttonIdx);
     shapes[buttonIdx].grow();
     simonWaitTimer.start(performance.now());
   }
