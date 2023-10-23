@@ -278,7 +278,7 @@ setSKAnimationCallback((time) => {
   shapes.forEach((s) => {
     s.update(time);
     if (simonGame.state == "START" || simonGame.state == "WIN") {
-      bounce(s);
+      sinWave(s, time);
     }
   });
   simonWaitTimer.update(time);
@@ -296,16 +296,10 @@ function playNextButton() {
   }
 }
 
-let dy = 1;
-const maxY = window.innerHeight / 1.8;
-const minY = window.innerHeight / 2.8;
-
-function bounce(button, time: number) {
-  // if object hits the limits, change direction
-  if (button.y < minY || button.y > maxY) {
-    dy *= -1.0;
-  }
-  button.y += dy;
+// hacked from professor's solution
+function sinWave(button, time: number) {
+  const h = (window.innerHeight - button.d) / 5;
+  button.y = Math.sin((time + button.x) / 500) * h + 3 * h;
 }
 
 addSKEventTranslator(longpressTranslator);
