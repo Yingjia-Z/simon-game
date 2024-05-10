@@ -41,6 +41,10 @@ const hueDegree = 36;
 
 let defaultButtonNum = 4;
 
+const gameOverSound = new Audio("src/gameOver.wav");
+const winSound = new Audio("src/win.mp3");
+winSound.volume = 0.6;
+
 initizeButton();
 
 // create simon game
@@ -224,11 +228,13 @@ function scoreMessage(gc: CanvasRenderingContext2D) {
       msg = arr.map((x) => x + 1);
     }
   } else if (simonGame.state == "WIN") {
+    winSound.play();
     msg = "You won! Press SPACE to continue";
     shapes.forEach((s) => {
       s.stroke = "transparent";
     });
   } else if (simonGame.state == "LOSE") {
+    gameOverSound.play();
     msg = "You lose. Press SPACE to play again";
     shapes.forEach((s) => {
       s.loseAttract();
